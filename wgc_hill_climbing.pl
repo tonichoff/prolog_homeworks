@@ -10,12 +10,9 @@ insert_(X, [H | T], [H | T1]) :-
     precedes(H, X),
     insert_(X, T, T1).
 
-precedes(wolf, [goat, cabbage]).
 precedes(wolf, goat).
 precedes(wolf, cabbage).
-precedes(wolf, []).
 precedes(goat, cabbage).
-precedes(goat, []).
 
 illegal(Coast) :- member_(wolf, Coast), member_(goat, Coast).
 illegal(Coast) :- member_(goat, Coast), member_(cabbage, Coast).
