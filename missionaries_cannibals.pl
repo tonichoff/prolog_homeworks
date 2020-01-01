@@ -7,45 +7,51 @@ legal_coast(coast(MisCount, CanCount)) :-
     CanCount =< 3,
     ((MisCount >= CanCount, MisCount > 0); MisCount = 0).
 
-legal(state(_, Left, Right)) :- legal_coast(Left), legal_coast(Right).
+legal(state(_, coast(MisCount, CanCount))) :-
+    legal_coast(coast(MisCount, CanCount)),
+    RightMis is 3 - MisCount,
+    RightCan is 3 - CanCount,
+    legal_coast(coast(RightMis, RightCan)).
 
-update_people_helper(
+on_right(
     move(MisMoved, CanMoved),
     coast(MisLeft, CanLeft),
-    coast(MisRight, CanRight),
-    coast(MisNewLeft, CanNewLeft),
-    coast(MisNewRight, CanNewRight)) :-
-    MisNewLeft is MisLeft -  MisMoved,
-    CanNewLeft is CanLeft - CanMoved,
-    MisNewRight is MisRight + MisMoved,
-    CanNewRight is CanRight + CanMoved.
+    coast(MisNewLeft, CanNewLeft)) :-
+    MisNewLeft is MisLeft - MisMoved,
+    CanNewLeft is CanLeft - CanMoved.
 
-update_people(Move, left, Left, Right, NewLeft, NewRight) :-
-    update_people_helper(Move, Left, Right, NewLeft, NewRight).
-update_people(Move, right, Left, Right, NewLeft, NewRight) :-
-    update_people_helper(Move, Right, Left, NewRight, NewLeft).
+on_left(
+    move(MisMoved, CanMoved),
+    coast(MisLeft, CanLeft),
+    coast(MisNewLeft, CanNewLeft)) :-
+    MisNewLeft is MisLeft + MisMoved,
+    CanNewLeft is CanLeft + CanMoved.
+
+update_people(Move, left, Left, NewLeft) :-
+    on_right(Move, Left, NewLeft).
+update_people(Move, right, Left, NewLeft) :-
+    on_left(Move, Left, NewLeft).
 
 update_coast(left, right).
 update_coast(right, left).
 
-update(state(Coast, Left, Right), Move, state(NewCoast, NewLeft, NewRight)) :-
+update(state(Coast, Left), Move, state(NewCoast, NewLeft)) :-
     update_coast(Coast, NewCoast),
-    update_people(Move, Coast, Left, Right, NewLeft, NewRight).
+    update_people(Move, Coast, Left, NewLeft).
 
-find_move(_, _, move(1, 0)).
-find_move(_, _, move(1, 1)).
-find_move(_, _, move(0, 1)).
-find_move(_, _, move(2, 0)).
-find_move(_, _, move(0, 2)).
+find_move(_, move(1, 0)).
+find_move(_, move(1, 1)).
+find_move(_, move(0, 1)).
+find_move(_, move(2, 0)).
+find_move(_, move(0, 2)).
 
-move(state(left, Left, Right), Move) :- find_move(Left, Right, Move).
-move(state(right, Left, Right), Move) :- find_move(Right, Left, Move).
+move(state(_, Left), Move) :- find_move(Left, Move).
 
-value(state(_, _, coast(MisCount, CanCount)), Value) :-  Value is MisCount + CanCount.
+value(state(_, coast(MisCount, CanCount)), Value) :-  Value is (3 - MisCount) + (3 - CanCount).
 
-final_state(state(right, coast(0, 0), coast(3, 3))).
+final_state(state(right, coast(0, 0))).
 
-initial_state(state, state(left, coast(3, 3), coast(0, 0))).
+initial_state(state, state(left, coast(3, 3))).
 
 /*  Hill climbing framework for problem solving*/
 
